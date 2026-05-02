@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
+import StatusFlow from '@/components/proposal/StatusBadge';
+import LineItemEditor from '@/components/proposal/LineItemEditor';
 import { useToast } from '@/components/ui/Toast';
-import { formatCurrency, formatDate, formatDateTime, formatUnit } from '@/lib/format';
-import { COMPANY } from '@/lib/constants';
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/format';
 import type { Proposal, ProposalLineItem, ActivityLogEntry } from '@/types';
 
 export default function ProposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,27 +20,36 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [savingItems, setSavingItems] = useState(false);
   const { addToast } = useToast();
 
-  useEffect(() => {
-    async function fetchProposal() {
-      try {
-        const res = await fetch(`/api/proposals?limit=100`);
-        if (res.ok) {
-          const data = await res.json();
-          const found = (data.proposals || []).find((p: Proposal) => p.id === id);
-          if (found) {
-            setProposal(found);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch proposal:', err);
-      } finally {
-        setLoading(false);
+  const fetchProposal = async () => {
+    try {
+      // Try fetching individual proposal first
+      const detailRes = await fetch(`/api/proposals/${id}`);
+      if (detailRes.ok) {
+        const data = await detailRes.json();
+        setProposal(data);
+        setLineItems(data.line_items || []);
+        setActivity(data.activity_log || []);
+        return;
       }
+
+      // Fallback to list API
+      const res = await fetch(`/api/proposals?limit=100`);
+      if (res.ok) {
+        const data = await res.json();
+        const found = (data.proposals || []).find((p: Proposal) => p.id === id);
+        if (found) setProposal(found);
+      }
+    } catch (err) {
+      console.error('Failed to fetch proposal:', err);
+    } finally {
+      setLoading(false);
     }
-    fetchProposal();
-  }, [id]);
+  };
+
+  useEffect(() => { fetchProposal(); }, [id]);
 
   const handleApprove = async () => {
     setApproving(true);
@@ -76,6 +86,34 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
       addToast('Failed to send proposal', 'error');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSaveLineItems = async (items: ProposalLineItem[]) => {
+    setSavingItems(true);
+    try {
+      const res = await fetch(`/api/proposals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line_items: items }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setProposal(updated);
+        setLineItems(items.map((item, i) => ({
+          ...item,
+          line_total: Math.round(Number(item.quantity) * Number(item.unit_price) * 100) / 100,
+          sort_order: i,
+        })));
+        addToast('Line items saved', 'success');
+      } else {
+        const err = await res.json();
+        addToast(err.error || 'Save failed', 'error');
+      }
+    } catch {
+      addToast('Failed to save line items', 'error');
+    } finally {
+      setSavingItems(false);
     }
   };
 
@@ -118,7 +156,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
             </Link>
             <h1 className="text-2xl font-bold text-slate-100">{proposal.project_title}</h1>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap mb-3">
             <Badge status={proposal.status} />
             <span className="text-sm text-slate-500">{proposal.proposal_number}</span>
             <span className="text-sm text-slate-500">Created {formatDate(proposal.created_at)}</span>
@@ -128,9 +166,10 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
               </span>
             )}
           </div>
+          <StatusFlow currentStatus={proposal.status} />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Link href={`/proposals/${id}/public`} target="_blank">
             <Button variant="ghost" size="sm">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -193,6 +232,17 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
         </Card>
       )}
 
+      {/* Line Items */}
+      {lineItems.length > 0 && (
+        <Card>
+          <LineItemEditor
+            items={lineItems}
+            onSave={handleSaveLineItems}
+            saving={savingItems}
+          />
+        </Card>
+      )}
+
       {/* Financials */}
       <Card>
         <h3 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Financial Summary</h3>
@@ -223,6 +273,26 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
           </h3>
           <p className="text-sm text-slate-300 whitespace-pre-line">{proposal.ai_generation_notes}</p>
         </div>
+      )}
+
+      {/* Activity Log */}
+      {activity.length > 0 && (
+        <Card>
+          <h3 className="text-sm font-semibold text-slate-300 mb-4 uppercase tracking-wider">Activity Log</h3>
+          <div className="space-y-3">
+            {activity.map((entry) => (
+              <div key={entry.id} className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-slate-600 mt-1.5 shrink-0" />
+                <div>
+                  <p className="text-sm text-slate-300">
+                    {entry.action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </p>
+                  <p className="text-xs text-slate-500">{formatDateTime(entry.created_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
 
       {/* Terms */}
