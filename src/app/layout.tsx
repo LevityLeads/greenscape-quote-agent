@@ -4,7 +4,7 @@ import ClientLayout from './client-layout';
 
 export const metadata: Metadata = {
   title: 'Greenscape Pro QuoteBot',
-  description: 'AI-powered proposal generator for premium landscape and hardscape design',
+  description: 'Proposal generator for premium landscape and hardscape design',
 };
 
 export default function RootLayout({

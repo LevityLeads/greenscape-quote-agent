@@ -20,7 +20,7 @@ export default function RecentProposals({ proposals }: RecentProposalsProps) {
           </svg>
         </div>
         <p className="text-slate-400 text-sm">No proposals yet</p>
-        <p className="text-slate-500 text-xs mt-1">Create your first AI-generated proposal</p>
+        <p className="text-slate-500 text-xs mt-1">Create your first proposal</p>
       </div>
     );
   }

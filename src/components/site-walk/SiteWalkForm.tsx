@@ -9,7 +9,6 @@ import { useToast } from '@/components/ui/Toast';
 import { PROJECT_TYPES, type SiteWalkFormData } from '@/types';
 import type { AIGenerationResult } from '@/types';
 import { formatCurrency } from '@/lib/format';
-import { AI_MODEL_DISPLAY } from '@/lib/constants';
 
 interface SiteWalkFormProps {
   onComplete: (proposalId: string, result: AIGenerationResult & { proposalId?: string; proposalNumber?: string; subtotal: number; taxRate: number; taxAmount: number; total: number; generationTimeSeconds: number }) => void;
@@ -265,7 +264,7 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-bold text-slate-100 mb-1">Site Walk Notes</h2>
-                <p className="text-sm text-slate-400">Describe what the client wants. Be as detailed or brief as you like: the AI fills in the gaps.</p>
+                <p className="text-sm text-slate-400">Describe what the client wants. Be as detailed or brief as you like.</p>
               </div>
 
               {/* Project Types */}
@@ -359,12 +358,12 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                   <div className="text-center space-y-2">
                     <h3 className="text-lg font-semibold text-slate-100">Generating Your Proposal</h3>
                     <p className="text-sm text-slate-400 max-w-md">
-                      The AI is interpreting your site walk notes, matching pricing items, and building a detailed proposal. This typically takes 10-30 seconds.
+                      Interpreting your site walk notes, matching pricing items, and building a detailed proposal. This typically takes 10-30 seconds.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Using {AI_MODEL_DISPLAY}
+                    Processing...
                   </div>
                 </>
               ) : error ? (
@@ -402,8 +401,7 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                 <div>
                   <h2 className="text-xl font-bold text-slate-100 mb-1">Review Proposal</h2>
                   <p className="text-sm text-slate-400">
-                    {generationResult.proposalNumber && `#${generationResult.proposalNumber} | `}
-                    Generated in {generationResult.generationTimeSeconds}s | AI cost: ~${(generationResult.estimatedCostCents / 100).toFixed(2)}
+                    {generationResult.proposalNumber && `#${generationResult.proposalNumber} | `}Generated in {generationResult.generationTimeSeconds}s
                   </p>
                 </div>
                 <Button
@@ -441,7 +439,7 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                     >
                       <img
                         src={renderImage}
-                        alt={`AI visualization of ${generationResult.projectTitle}`}
+                        alt={`Visualization of ${generationResult.projectTitle}`}
                         className="w-full object-cover"
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-5 py-4">
@@ -450,7 +448,7 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                     </motion.div>
                   ) : null}
                   <p className="text-xs italic text-slate-500">
-                    *AI-generated visualization for illustrative purposes. Final designs will be based on actual site photos and measurements.
+                    *Visualization for illustrative purposes. Final designs will be based on actual site photos and measurements.
                   </p>
                 </div>
               )}
@@ -501,14 +499,14 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                 </div>
               </div>
 
-              {/* AI Notes */}
+              {/* Estimator Notes */}
               {generationResult.aiNotes && (
                 <div className="bg-amber-900/10 border border-amber-800/30 rounded-xl p-5">
                   <h3 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    AI Notes for Review
+                    Notes for Review
                   </h3>
                   <p className="text-sm text-slate-300 whitespace-pre-line">{generationResult.aiNotes}</p>
                 </div>

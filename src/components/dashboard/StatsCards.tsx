@@ -37,7 +37,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
     {
       label: 'Avg Generation Time',
       value: stats.averageGenerationTime > 0 ? `${stats.averageGenerationTime}s` : 'N/A',
-      sub: 'AI proposal generation',
+      sub: 'Proposal generation',
       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
       color: 'from-purple-500/20 to-purple-600/5',
       iconBg: 'bg-purple-600/20 text-purple-400',

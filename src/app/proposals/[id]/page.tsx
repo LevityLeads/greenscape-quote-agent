@@ -162,7 +162,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
             <span className="text-sm text-slate-500">Created {formatDate(proposal.created_at)}</span>
             {proposal.ai_cost_cents > 0 && (
               <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded">
-                AI cost: ${(proposal.ai_cost_cents / 100).toFixed(2)}
+                Generation cost: ${(proposal.ai_cost_cents / 100).toFixed(2)}
               </span>
             )}
           </div>
@@ -262,14 +262,14 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
         </div>
       </Card>
 
-      {/* AI Notes */}
+      {/* Generation Notes */}
       {proposal.ai_generation_notes && (
         <div className="bg-amber-900/10 border border-amber-800/30 rounded-xl p-5">
           <h3 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            AI Notes for Review
+            Notes for Review
           </h3>
           <p className="text-sm text-slate-300 whitespace-pre-line">{proposal.ai_generation_notes}</p>
         </div>
