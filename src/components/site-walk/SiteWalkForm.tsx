@@ -22,6 +22,8 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
   const [generating, setGenerating] = useState(false);
   const [generationResult, setGenerationResult] = useState<(AIGenerationResult & { proposalId?: string; proposalNumber?: string; subtotal: number; taxRate: number; taxAmount: number; total: number; generationTimeSeconds: number }) | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [renderImage, setRenderImage] = useState<string | null>(null);
+  const [renderLoading, setRenderLoading] = useState(false);
   const { addToast } = useToast();
 
   const [form, setForm] = useState<SiteWalkFormData>({
@@ -78,6 +80,30 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
       setGenerationResult(result);
       setStep(3);
       addToast('Proposal generated successfully', 'success');
+
+      // Fire off render generation in the background (non-blocking)
+      setRenderLoading(true);
+      fetch('/api/generate-render', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proposalId: result.proposalId,
+          projectTitle: result.projectTitle,
+          projectDescription: result.projectDescription,
+          projectTypes: form.projectTypes,
+          clientAddress: form.clientAddress || undefined,
+        }),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.imageUrl) {
+            setRenderImage(data.imageUrl);
+          }
+        })
+        .catch(() => {
+          // Render generation is purely additive, never block on failure
+        })
+        .finally(() => setRenderLoading(false));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(message);
@@ -390,6 +416,44 @@ export default function SiteWalkForm({ onComplete }: SiteWalkFormProps) {
                   View Full Proposal
                 </Button>
               </div>
+
+              {/* Project Visualization */}
+              {(renderLoading || renderImage) && (
+                <div className="space-y-3">
+                  {renderLoading && !renderImage ? (
+                    <div className="relative overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50">
+                      <div className="aspect-[3/2] flex flex-col items-center justify-center gap-3">
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-800/0 via-slate-700/30 to-slate-800/0 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400/60 animate-pulse">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        <p className="text-sm text-slate-400 animate-pulse">Generating project visualization...</p>
+                      </div>
+                    </div>
+                  ) : renderImage ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.97 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, ease: 'easeOut' }}
+                      className="relative overflow-hidden rounded-xl border border-slate-700/50"
+                    >
+                      <img
+                        src={renderImage}
+                        alt={`AI visualization of ${generationResult.projectTitle}`}
+                        className="w-full object-cover"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent px-5 py-4">
+                        <p className="text-sm font-semibold text-white">{generationResult.projectTitle}</p>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                  <p className="text-xs italic text-slate-500">
+                    *AI-generated visualization for illustrative purposes. Final designs will be based on actual site photos and measurements.
+                  </p>
+                </div>
+              )}
 
               {/* Project Summary */}
               <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 space-y-4">

@@ -130,6 +130,31 @@ export default function PublicProposalPage({ params }: { params: Promise<{ id: s
 
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
+        {/* Project Visualization */}
+        {proposal.render_image && (
+          <motion.section
+            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.55, duration: 0.6, ease: 'easeOut' }}
+          >
+            <h2 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4">Your Vision</h2>
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-800/30 shadow-2xl shadow-emerald-950/30">
+              <img
+                src={proposal.render_image}
+                alt={`AI visualization of ${proposal.project_title}`}
+                className="w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent px-6 py-5">
+                <p className="text-lg font-semibold text-white">{proposal.project_title}</p>
+                <p className="text-sm text-emerald-300/80 mt-0.5">Conceptual visualization</p>
+              </div>
+            </div>
+            <p className="text-xs italic text-slate-500 mt-3">
+              *AI-generated visualization for illustrative purposes. Final designs will be based on actual site photos and measurements.
+            </p>
+          </motion.section>
+        )}
+
         {/* Project Description */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
