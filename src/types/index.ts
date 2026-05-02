@@ -71,6 +71,7 @@ export interface Proposal {
   ai_model_used: string;
   ai_cost_cents: number;
   ai_generation_notes: string | null;
+  render_image?: string | null;
   sent_at: string | null;
   signed_at: string | null;
   expires_at: string | null;
